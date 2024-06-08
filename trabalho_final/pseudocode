@@ -1,0 +1,24 @@
+procedure setup
+    create patches
+    create students
+    assign students to ENTRY stage
+
+procedure go
+    while not all students are in EXIT
+        move-students
+        update-stage-time
+        display-average-times
+        tick
+
+procedure move-students
+    for each student
+        if student is not in EXIT
+            move to next stage based on conditions
+
+procedure update-stage-time
+    for each stage
+        update the total time and count of students
+
+procedure display-average-times
+    for each stage
+        calculate and display average time spent
