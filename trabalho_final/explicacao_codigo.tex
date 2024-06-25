@@ -1,0 +1,356 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{codegray}{gray}{0.9}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codeblue}{rgb}{0,0,0.6}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{codegray},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\title{Explicação do Código NetLogo}
+\author{}
+\date{}
+\maketitle
+
+\section{Definições Iniciais}
+
+\subsection{Declarações de Raças e Variáveis}
+
+\begin{lstlisting}[language=NetLogo]
+breed [students student]
+
+turtles-own [
+  stage
+  time-in-stage
+  next-stage
+  total-time
+]
+
+globals [
+  stages
+  stage-names
+  total-times
+  total-counts
+  average-times
+  deviation
+  total-students
+  completion-times
+]
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{breed [students student]}: Define uma nova raça chamada "students" (alunos) com indivíduos do tipo "student".
+    \item \texttt{turtles-own}: Define atributos específicos dos alunos, como estágio atual, tempo no estágio, próximo estágio e tempo total.
+    \item \texttt{globals}: Define variáveis globais, como lista de estágios (\texttt{stages}), nomes dos estágios (\texttt{stage-names}), tempos totais em cada estágio (\texttt{total-times}), contagem de alunos em cada estágio (\texttt{total-counts}), tempos médios (\texttt{average-times}), desvio padrão (\texttt{deviation}), total de alunos (\texttt{total-students}) e tempos de conclusão (\texttt{completion-times}).
+\end{itemize}
+
+\section{Procedimento \texttt{setup}}
+
+\begin{lstlisting}[language=NetLogo]
+to setup
+  clear-all
+  reset-ticks
+  set stages (list
+    patch -10 -16  ;; ENTRY
+    patch -15 -8   ;; PAY
+    patch -16 2    ;; B1
+    patch -16 10   ;; B2
+    patch -10 16   ;; B3
+    patch -2 16    ;; B4
+    patch 8 16     ;; B5
+    patch 15 10    ;; B6
+    patch 15 -2    ;; B7
+    patch 15 -8    ;; EXIT
+  )
+  set stage-names ["ENTRY" "PAY" "B1" "B2" "B3" "B4" "B5" "B6" "B7" "EXIT"]
+  set total-times n-values (length stages) [0]
+  set total-counts n-values (length stages) [0]
+  set average-times n-values (length stages) [0]
+  set total-students 0
+  ask patches [set pcolor 66]
+  set completion-times []
+  create-sector
+  create-public initial-group-size
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{setup}: Inicializa o ambiente de simulação.
+    \begin{itemize}
+        \item \texttt{clear-all} e \texttt{reset-ticks}: Limpa o ambiente e reinicia o contador de ticks.
+        \item \texttt{set stages}: Define a lista de patches que representam os estágios do processo.
+        \item \texttt{set stage-names}: Define os nomes dos estágios.
+        \item \texttt{set total-times}, \texttt{total-counts}, \texttt{average-times}: Inicializa listas para armazenar os tempos totais, contagens e tempos médios.
+        \item \texttt{set total-students}: Inicializa a contagem total de alunos.
+        \item \texttt{ask patches [set pcolor 66]}: Define a cor dos patches.
+        \item \texttt{set completion-times}: Inicializa a lista de tempos de conclusão.
+        \item \texttt{create-sector}: Cria a representação dos setores.
+        \item \texttt{create-public initial-group-size}: Cria um grupo inicial de alunos.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{create-sector}}
+
+\begin{lstlisting}[language=NetLogo]
+to create-sector
+  foreach stages [
+    stage-patch ->
+    let stage-index position stage-patch stages
+    ask stage-patch [
+      set plabel item stage-index stage-names
+    ]
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{create-sector}: Associa os patches dos estágios aos nomes correspondentes.
+    \begin{itemize}
+        \item \texttt{foreach stages}: Itera sobre cada patch na lista de estágios.
+        \item \texttt{ask stage-patch [set plabel item stage-index stage-names]}: Define o rótulo do patch com o nome do estágio correspondente.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{create-public}}
+
+\begin{lstlisting}[language=NetLogo]
+to create-public [initial-size]
+  create-students initial-size [
+    set shape "person"
+    setxy -11 -16
+    set stage item 0 stages
+    set time-in-stage 0
+    set next-stage nobody
+    set total-time 0
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{create-public}: Cria alunos.
+    \begin{itemize}
+        \item \texttt{create-students initial-size}: Cria um número inicial de alunos.
+        \item \texttt{set shape "person"}: Define a forma dos alunos como "person".
+        \item \texttt{setxy -11 -16}: Posiciona os alunos no ponto inicial.
+        \item \texttt{set stage item 0 stages}: Define o estágio inicial dos alunos.
+        \item \texttt{set time-in-stage 0}, \texttt{set next-stage nobody}, \texttt{set total-time 0}: Inicializa os atributos dos alunos.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{go}}
+
+\begin{lstlisting}[language=NetLogo]
+to go
+  if not any? students [
+    display-average-times
+    stop
+  ]
+  move-students
+  tick
+  display-average-times
+  possibly-create-new-students
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{go}: Principal ciclo de execução.
+    \begin{itemize}
+        \item \texttt{if not any? students}: Verifica se não há mais alunos.
+        \item \texttt{display-average-times}: Exibe os tempos médios.
+        \item \texttt{stop}: Para a simulação.
+        \item \texttt{move-students}: Move os alunos.
+        \item \texttt{tick}: Incrementa o contador de ticks.
+        \item \texttt{possibly-create-new-students}: Possivelmente cria novos alunos.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{move-students}}
+
+\begin{lstlisting}[language=NetLogo]
+to move-students
+  ask students [
+    let current-index position stage stages
+    ifelse current-index = (length stages - 1) [
+      set total-time total-time + time-in-stage ;; Acumula o tempo gasto na última etapa
+      set completion-times lput total-time completion-times ;; Armazena o tempo de conclusão
+      set total-students total-students + 1
+      show (word "Tempo completado: " completion-times)
+      die
+    ] [
+      set next-stage item (current-index + 1) stages
+      if current-index < (length stages - 1) [
+        update-stage-time current-index time-in-stage
+      ]
+      ifelse count students-on next-stage = 0 and time-in-stage >= random-triangular 0.1 move-threshold 10.8 [
+        move-to next-stage
+        set stage next-stage
+        set time-in-stage 0
+        set total-time total-time + time-in-stage
+      ] [
+        set time-in-stage time-in-stage + 1
+      ]
+    ]
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{move-students}: Move os alunos pelos estágios.
+    \begin{itemize}
+        \item \texttt{ifelse current-index = (length stages - 1)}: Verifica se o aluno está no último estágio.
+        \begin{itemize}
+            \item \texttt{set total-time total-time + time-in-stage}: Acumula o tempo gasto na última etapa.
+            \item \texttt{set completion-times lput total-time completion-times}: Armazena o tempo de conclusão.
+            \item \texttt{set total-students total-students + 1}: Incrementa o total de alunos.
+            \item \texttt{show (word "Tempo completado: " completion-times)}: Exibe os tempos de conclusão.
+            \item \texttt{die}: Remove o aluno.
+        \end{itemize}
+        \item \texttt{set next-stage item (current-index + 1) stages}: Define o próximo estágio.
+        \item \texttt{if current-index < (length stages - 1)}: Verifica se o aluno não está no último estágio.
+        \item \texttt{update-stage-time current-index time-in-stage}: Atualiza o tempo gasto no estágio.
+        \item \texttt{ifelse count students-on next-stage = 0 and time-in-stage >= random-triangular 0.1 move-threshold 10.8}: Verifica se pode mover para o próximo estágio.
+        \begin{itemize}
+            \item \texttt{move-to next-stage}: Move para o próximo estágio.
+            \item \texttt{set stage next-stage}: Define o próximo estágio.
+            \item \texttt{set time-in-stage 0}: Reinicia o tempo no estágio.
+            \item \texttt{set total-time total-time + time-in-stage}: Acumula o tempo total.
+        \end{itemize}
+        \item \texttt{set time-in-stage time-in-stage + 1}: Incrementa o tempo no estágio.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{possibly-create-new-students}}
+
+\begin{lstlisting}[language=NetLogo]
+to possibly-create-new-students
+  if random-float 1 < new-student-prob [
+    create-public 1
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{possibly-create-new-students}: Possivelmente cria novos alunos.
+    \begin{itemize}
+        \item \texttt{if random-float 1 < new-student-prob}: Verifica se deve criar um novo aluno.
+        \item \texttt{create-public 1}: Cria um novo aluno.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{update-stage-time}}
+
+\begin{lstlisting}[language=NetLogo]
+to update-stage-time [index time]
+  set total-times replace-item index total-times (item index total-times + time)
+  set total-counts replace-item index total-counts (item index total-counts + 1)
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{update-stage-time}: Atualiza o tempo gasto em um estágio.
+    \begin{itemize}
+        \item \texttt{set total-times replace-item index total-times (item index total-times + time)}: Atualiza o tempo total no estágio.
+        \item \texttt{set total-counts replace-item index total-counts (item index total-counts + 1)}: Atualiza a contagem de alunos no estágio.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{average-time}}
+
+\begin{lstlisting}[language=NetLogo]
+to-report average-time [total-time-val total-count-val]
+  ifelse total-count-val > 0 [
+    report total-time-val / total-count-val
+  ] [
+    report 0
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{average-time}: Calcula o tempo médio em um estágio.
+    \begin{itemize}
+        \item \texttt{ifelse total-count-val > 0}: Verifica se há alunos no estágio.
+        \item \texttt{report total-time-val / total-count-val}: Retorna o tempo médio.
+        \item \texttt{report 0}: Retorna 0 se não há alunos.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{display-average-times}}
+
+\begin{lstlisting}[language=NetLogo]
+to display-average-times
+  let temp-average-times []
+  (foreach stage-names total-times total-counts [
+    [stage-name total-time-val total-count-val] ->
+      let avg-time average-time total-time-val total-count-val
+      set temp-average-times lput avg-time temp-average-times
+      show (word "Tempo medio em " stage-name ": " avg-time " (total time: " total-time-val ", total count: " total-count-val ")")
+  ])
+  set average-times temp-average-times
+  show (word "Lista de tempos medios: " average-times)
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{display-average-times}: Exibe os tempos médios em cada estágio.
+    \begin{itemize}
+        \item \texttt{let temp-average-times []}: Inicializa uma lista temporária para armazenar os tempos médios.
+        \item \texttt{foreach stage-names total-times total-counts}: Itera sobre os nomes dos estágios, tempos totais e contagens.
+        \item \texttt{let avg-time average-time total-time-val total-count-val}: Calcula o tempo médio.
+        \item \texttt{set temp-average-times lput avg-time temp-average-times}: Adiciona o tempo médio à lista temporária.
+        \item \texttt{show (word "Tempo medio em " stage-name ": " avg-time " (total time: " total-time-val ", total count: " total-count-val ")")}: Exibe o tempo médio para cada estágio.
+        \item \texttt{set average-times temp-average-times}: Atualiza a lista global de tempos médios.
+        \item \texttt{show (word "Lista de tempos medios: " average-times)}: Exibe a lista de tempos médios.
+    \end{itemize}
+\end{itemize}
+
+\section{Procedimento \texttt{random-triangular}}
+
+\begin{lstlisting}[language=NetLogo]
+to-report random-triangular [min-val max-val mode]
+  let u1 random-float 1
+  let u2 random-float 1
+  let f (mode - min-val) / (max-val - min-val)
+  ifelse u1 <= f [
+    report min-val + sqrt (u2 * (max-val - min-val) * (mode - min-val))
+  ] [
+    report max-val - sqrt ((1 - u2) * (max-val - min-val) * (max-val - mode))
+  ]
+end
+\end{lstlisting}
+
+\begin{itemize}
+    \item \texttt{random-triangular}: Gera um número aleatório com distribuição triangular.
+    \begin{itemize}
+        \item \texttt{let u1 random-float 1}, \texttt{let u2 random-float 1}: Gera dois números aleatórios entre 0 e 1.
+        \item \texttt{let f (mode - min-val) / (max-val - min-val)}: Calcula a fração da base da distribuição triangular.
+        \item \texttt{ifelse u1 <= f}: Verifica se o número aleatório está na parte ascendente da distribuição.
+        \item \texttt{report min-val + sqrt (u2 * (max-val - min-val) * (mode - min-val))}: Retorna um número na parte ascendente.
+        \item \texttt{report max-val - sqrt ((1 - u2) * (max-val - min-val) * (max-val - mode))}: Retorna um número na parte descendente.
+    \end{itemize}
+\end{itemize}
+
+\end{document}
